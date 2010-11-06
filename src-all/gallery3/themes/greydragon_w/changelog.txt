@@ -1,0 +1,24 @@
+Grey Dragon Wind Theme Changelog
+
+version 1.0.5:
+- Adjusted to match Gallery 3.0 official release
+
+version 1.0.4:
+- Adjusted to match RC2 changes
+
+version 1.0.3:
+- Added image for "parent" button in paginator
+- In albums, paginator goes before description 
+- Fixed issue with thumb not being centered
+- Small CSS adjustments
+
+version 1.0.2:
+- Updated paginator code brought from main GreyDragon Theme allowing support for Keyboard Navigation module
+
+version 1.0.1:
+- Admin added
+- minor fixes
+- more CSS added
+
+version 1.0.0:
+- Initial release of GreyDragon 1.8 theme

@@ -1,0 +1,6 @@
+name = "Steel"
+description = "Clean Machine look. Heavily relient css3, could be unstable in some browsers"
+version = 1
+author = "crapson"
+site = 1
+admin = 0

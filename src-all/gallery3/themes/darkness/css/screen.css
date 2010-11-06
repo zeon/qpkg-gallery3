@@ -1,0 +1,1227 @@
+/**
+ * Gallery 3 Default Theme Screen Styles
+ *
+ * @requires YUI reset, font, grids CSS
+ *
+ * Sheet organization:
+ *  1)  Basic HTML elements
+ *  2)  Reusable classes
+ *  3)  Reusable content blocks
+ *  4)  Page layout containers
+ *  5)  Content blocks in specific layout containers
+ *  6)  Navigation and menus
+ *  7)  Browser hacks
+ *  8)  jQuery and jQuery UI
+ *  9)  Right-to-left language styles
+ */
+
+/** *******************************************************************
+ * 1) Basic HTML elements
+ **********************************************************************/
+
+body, html {
+  color: #777;
+  background-color: #202020;
+  font-family: 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  font-size: 12px; 
+}
+
+p {
+  margin-bottom: 1em;
+}
+
+em {
+  font-style: oblique;
+}
+
+h1, h2, h3, h4, h5, strong, th {
+  font-weight: bold;
+}
+
+h1 {
+  font-size: 1.7em;
+}
+
+#gSearchResults h1 {
+  margin-bottom: 1em;
+}
+
+#gProgress h1 {
+  font-size: 1.1em;
+}
+
+h2 {
+  font-size: 1.4em;
+}
+
+#gSidebar .gBlock h2 {
+  font-size: 1.2em;
+}
+
+#gSidebar .gBlock li {
+  margin-bottom: .6em;
+}
+
+h3 {
+  font-size: 1.2em;
+}
+
+/* Links ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+a,
+.gMenu a,
+#gDialog a,
+.gButtonLink,
+.gButtonLink:hover,
+.gButtonLink:active {
+  color: #777 !important;
+  text-decoration: none;
+  -moz-outline-style: none;
+}
+
+a:hover,
+#gDialog a:hover {
+  color: DodgerBlue !important;
+  text-decoration: none;
+}
+
+#gDialog .gCancel {
+  clear: none;
+  float: left;
+  margin: .3em 1em;
+}
+
+#gForgotPasswordLink {
+  float: right;
+  font-size: .9em;
+}
+
+#gDialog .gCancel {
+  float: left;
+}
+
+/* Tables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+table {
+  width: 100%;
+}
+
+#gContent table {
+  margin: 1em 0;
+}
+
+caption,
+th {
+  text-align: left;
+}
+
+th,
+td {
+  border: none;
+  border-bottom: 1px solid #ccc;
+  padding: .5em;
+  vertical-align: top;
+}
+
+/* Forms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+fieldset {
+  border: 1px solid #ccc;
+  padding-bottom: .8em;
+}
+
+#gHeader fieldset,
+#gSidebar fieldset,
+.gShortForm fieldset {
+  border: none;
+}
+
+legend {
+  font-weight: bold;
+  margin-left: 1em;
+}
+
+#gHeader legend,
+#gSidebar legend,
+#gContent #gSearchForm legend,
+input[type="hidden"],
+.gShortForm label {
+  display: none;
+}
+
+label {
+  cursor: help;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 50%;
+}
+
+input[type="text"],
+input[type="password"],
+textarea {
+  border: 1px solid #444;
+  color: #888;
+  background: #1c1c1c;
+}
+
+textarea {
+  width: 100%;
+  height: 12em;
+}
+
+input:focus,
+textarea:focus,
+option:focus {
+  background: #1c1c1c;
+}
+
+/* Form layout ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+form li {
+  margin: 0 !important;
+  padding: .3em 1.5em .3em 1em;
+}
+
+form ul ul {
+  clear: both;
+}
+
+form ul ul li {
+  float: left;
+}
+
+input,
+select,
+textarea {
+  display: block;
+  clear: both;
+  padding: .2em;
+}
+
+input[type="submit"]
+{
+  color: #888;
+  background: #333;
+  border: 1px solid #444;
+}
+
+input[type="submit"]:hover
+{
+  color: DodgerBlue;
+}
+
+input[type="submit"],
+input[type="reset"] {
+  display: inline;
+  clear: none;
+  float: left;
+}
+
+/* Form validation ~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.gValidationRule {
+  font-size: 80%;
+  margin-top: .5em;
+}
+
+form.gError input[type="text"],
+li.gError input[type="text"],
+form.gError input[type="password"],
+li.gError input[type="password"],
+form.gError input[type="checkbox"],
+li.gError input[type="checkbox"],
+form.gError input[type="radio"],
+li.gError input[type="radio"],
+form.gError textarea,
+li.gError textarea,
+form.gError select,
+li.gError select {
+  border: 2px solid red;
+}
+
+/** *******************************************************************
+ * 2) Reusable generic classes
+ *********************************************************************/
+
+.inactive, .understate {
+  color: #ccc;
+  font-weight: normal;
+}
+
+.left {
+  float: left;
+  margin: 1em 1em 1em 0;
+}
+
+.right {
+  float: right;
+  margin: 1em 0 1em 1em;
+}
+
+.txtright {
+  text-align: right;
+}
+
+/** *******************************************************************
+ * 3) Reusable content blocks
+ *********************************************************************/
+
+.gBlock {
+  clear: both;
+  margin-bottom: 2.5em;
+}
+
+.gBlock h2 {
+  color: #888;
+  background-color: #333;
+  padding: .3em .8em;
+}
+
+.gBlockContent {
+}
+
+/* Status messages ~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gMessage {
+  width: 99%;
+}
+
+#gAdminAkismet .gSuccess,
+#gSiteStatus li,
+#gMessage li {
+  border: 1px solid #ccc;
+  margin-bottom: .4em;
+}
+
+#gSiteStatus li {
+  margin-bottom: 0;
+  border: none;
+  border-bottom: 1px solid #ccc;
+}
+
+#gSiteStatus .gError,
+#gMessage .gError,
+form p.gError,
+#gSiteStatus .gInfo,
+#gMessage .gInfo,
+#gSiteStatus .gSuccess,
+#gMessage .gSuccess,
+#gSiteStatus .gWarning,
+#gMessage .gWarning {
+  background-position: .4em 50%;
+  background-repeat: no-repeat;
+  padding: .4em .5em .4em 30px;
+}
+
+.gError {
+  background-color: #fcc;
+}
+
+form .gError {
+  color: #f00;
+}
+
+#gSiteStatus .gError,
+#gMessage .gError,
+form p.gError {
+  background-image: url('../images/ico-error.png');
+}
+
+#gSiteStatus .gInfo,
+#gMessage .gInfo {
+  background-image: url('../images/ico-info.png');
+}
+
+.gSuccess {
+  background-color: #96EF95;
+}
+
+#gSiteStatus .gSuccess,
+#gMessage .gSuccess {
+  background-image: url('../images/ico-success.png');
+}
+
+.gWarning {
+  background-color: #ff9;
+}
+
+#gSiteStatus .gWarning,
+#gMessage .gWarning {
+  background-image: url('../images/ico-warning.png');
+}
+
+form .gError,
+.gPager .gInfo {
+  background-color: #161616;
+}
+
+#gAdminMaintenance .gError,
+#gAdminMaintenance .gInfo,
+#gAdminMaintenance .gWarning,
+#gAdminMaintenance .gSuccess {
+  background-image: none;
+}
+
+/* Inline layout (forms, lists) ~~~~~~~~~~ */
+
+.gShortForm {
+  margin: 0 !important;
+}
+
+.gShortForm li {
+  float: left;
+  padding: .4em 0;
+}
+
+.gShortForm input[type="text"] {
+  padding: .3em .6em;
+  width: 11em;
+}
+
+/*** ******************************************************************
+ * 4) Page layout containers
+ *********************************************************************/
+
+/* View container ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gView {
+  margin:auto;text-align:left; /* leave unchanged */ 
+  width:71.08em;/* non-IE */ 
+  *width:69.30em;/* IE */ 
+  min-width:924px;/* optional but recommended */ 
+}
+
+/* Layout containers ~~~~~~~~~~~~~~~~~~~~~ */
+
+#gHeader {
+  background-color: #202020;
+  border: none;
+  margin-top: 10px;
+  padding: 0;
+}
+
+#gContentOuterBox {
+  border-top: 1px solid #5f5f5f;
+  border-right: 1px solid #1d1d1d;
+  border-bottom: 1px solid #0c0c0c;
+  border-left: 1px solid #4d4d4d;
+}
+  
+#gContentInnerBox {
+  border: 5px solid #3b3b3b;
+  padding: 15px;
+  background-color: #161616;
+}
+
+#gSidebar {
+  background-color: #202020;
+  border: 1px solid #444;
+  font-size: .9em;
+  padding: 0 20px;
+  width: 220px;
+}
+
+#gFooter {
+  color: #555;
+  background-color: #202020;
+  padding: 3px 6px 10px 0;
+}
+
+/** *******************************************************************
+ * 5) Content blocks in specific layout containers
+ *********************************************************************/
+
+/* Header  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gHeaderTop {
+  float: left;
+  clear: right;
+  width: 100%;
+}
+
+#gHeaderBottom {
+  float: left;  
+  width: 100%;
+}
+
+#gHeaderLogo {
+  float: left;
+  margin-right: 10px;
+}
+
+#gHeaderTitle {
+  float: left;
+  font-family: serif;
+  font-weight: bold;
+  font-size: 2em;
+  line-height: normal;
+  text-decoration: none;
+  color: #cacaca !important;
+  border: none;
+}
+
+#gQuickSearchForm {
+  float: right;
+}
+
+#gQuickSearchForm input[type='text'] {
+  width: 17em;
+}
+
+#gContent .gBlock h2 {
+  background-color: transparent;
+  padding-left: 0;
+}
+
+#gSidebar .gBlockContent {
+  padding-left: 1em;
+}
+
+/* Login menu ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gLoginMenu {
+  color: #777;
+  float: right;
+  padding: 4px 6px 4px 0;
+}
+
+#gLoginMenu li {
+  display: inline;
+}
+
+#gLoginMenu li {
+  padding-left: 1.2em;
+}
+
+#gLoginMenu a {
+  font-weight: bold;
+  text-decoration: none;
+}
+
+/* Site Menu  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gSiteMenu {
+  float: right;
+  margin: 0 !important;
+}
+
+#gSiteMenu ul {
+  margin-bottom: 0;
+}
+
+/* Titlebar ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gTitleBar {
+	color: #888;  
+	background: #333;
+	border-top: 1px solid #4b4b4b;
+	border-right: 1px solid #141414;
+	border-bottom: 1px solid #111;
+	border-left: 1px solid #444;
+	height: 3em;
+	margin: 0;
+	padding: 5px 10px;
+}
+
+#gTitleBar .gTitle {
+  float: left;
+}
+
+#gTitleBar .gDetails {
+  float: right;
+}
+
+#gTitleBar .gDetails li {
+  margin: 2px 0 0 20px;
+}
+
+/* Album content ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gContent #gAlbumGrid .gItem {
+  float: left;
+  overflow: hidden;
+  padding: 10px;
+  position: relative;
+  background-color: #161616;
+}
+
+#gEmptyAlbum {
+  margin: 30px;
+}
+
+.gThumbImage {
+  margin-bottom: 5px;
+}
+
+.gThumbnail {
+  padding: 0 !important;
+}
+
+.gThumbDetails {
+  border: none;
+  margin: 0 auto;
+}
+
+.gThumbDetails .gDetails {
+  float: left;
+}
+
+.gThumbDetails .gTitle a,
+.gThumbDetails .gDetails li {
+  padding: 0 2px 0 20px;
+}
+
+.gAlbum .gThumbDetails .gTitle a {
+  background: transparent url('../images/ico-album.png') no-repeat center left !important;
+}
+
+.gPhoto .gThumbDetails .gTitle a {
+  background: transparent url('../images/ico-photo.png') no-repeat center left !important;
+}
+
+/* Context Menu  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.gContextMenu {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
+
+.gItem .gContextMenu {
+  display: none;
+}
+
+#gItem .gContextMenu {
+  font-size: .7em;
+}
+
+#gItem .gContextMenu ul {
+  display: none;
+}
+
+.gContextMenu li {
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+}
+
+.gContextMenu li a {
+  display: block;
+  line-height: 1.6em;
+}
+
+.gHoverItem .gContextMenu {
+  display: block;
+}
+
+/* Individual photo content ~~~~~~~~~~~~~~ */
+
+#gContent #gItem {
+  width: 100%;
+}
+
+#gContent #gPhoto {
+  position: relative;
+}
+
+#gContent #gItem .gFullSizeLink img {
+  display: block;
+  margin: 1em auto !important;
+}
+
+#gContent #gComments {
+  margin-top: 2em;
+}
+
+#gContent #gComments ul li {
+  margin: 1em 0;
+}
+
+#gContent #gComments .gAuthor {
+  border-bottom: 1px solid #ccc;
+  color: #999;
+  height: 32px;
+  line-height: 32px;
+}
+
+#gContent #gComments ul li div {
+  padding: 0 8px 8px 43px;
+}
+
+#gContent #gComments ul li #gRecaptcha {
+  padding: 0;
+}
+
+#gContent #gComments ul li #gRecaptcha div {
+  padding: 0;
+}
+
+#gContent #gComments .gAvatar {
+  height: 32px;
+  margin-right: .4em;
+  width: 32px;
+}
+
+#gContent #gAddCommentForm {
+  margin-top: 2em;
+}
+
+/* Footer content ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gContent #gSearchResults {
+  margin-top: 1em;
+  padding-top: 1em;
+}
+
+#gFooter #gCredits li {
+  padding-left: 3em;
+  display: inline;
+  float: left;
+}
+
+#gFooter .gFooterText {
+  float: left;
+  padding-left: 6px;
+}
+
+#gFooter a {
+  font-weight: bold;
+}
+
+#gFooter .gLoggedInAs {
+  float: right;
+}
+
+/** *******************************************************************
+ * 5) Navigation and menus
+ *********************************************************************/
+
+#gTagCloud ul {
+  font-size: 1.2em;
+}
+
+/* Thumb Menu  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gContent .gThumbMenu {
+  bottom: 0;
+  left: 88px;
+  position: absolute;
+  width: 100%;
+}
+
+#gContent .gThumbMenu li {
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+}
+
+#gContent .gThumbMenu li li {
+  padding: .3em;
+}
+
+/* View Menu  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gViewMenu {
+  margin-bottom: 1em;
+}
+
+#gViewMenu a {
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  height: 28px !important;
+  width: 43px !important;
+}
+
+#gViewMenu #gHybridLink {
+  background-image: url('../images/ico-view-hybrid.png');
+}
+
+#gViewMenu #gSlideshowLink {
+  background-image: url('../images/ico-view-slideshow.png');
+}
+
+#gViewMenu .gFullSizeLink {
+  background-image: url('../images/ico-view-fullsize.png');
+}
+
+#gViewMenu #gCommentsLink {
+  background-image: url('../images/ico-view-comments.png');
+}
+
+#gViewMenu #gDigibugLink {
+  background-image: url('../images/ico-print.png');
+}
+
+/* Breadcrumbs ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.gBreadcrumbs {
+  background-color: #202020;
+  float: left;
+  padding: 4px 0 4px 6px;
+}
+
+.gBreadcrumbs li {
+  background: transparent url('../images/ico-separator.png') no-repeat scroll left center;
+  font-weight: bold;
+  float: left;
+  padding: 0 3px 0 18px;
+}
+
+.gBreadcrumbs li:first-child {
+  background: none;
+  padding-left: 0px;
+}
+
+.gBreadcrumbs a,
+.gBreadcrumbs span {
+  display: block;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+#gAddPhotos .gBreadcrumbs {
+  font-size: .9em;
+}
+
+/* Tags and cloud ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gTagCloud ul {
+  text-align: justify;
+}
+
+#gTagCloud ul li {
+  display: inline;
+  line-height: 1.5em;
+  text-align: justify;
+}
+
+#gTagCloud ul li a {
+  text-decoration: none;
+}
+
+#gTagCloud ul li span {
+  display: none;
+}
+
+#gTagCloud ul li.size1 a {
+  color: #9cf;
+  font-size: 80%;
+  font-weight: 100;
+}
+
+#gTagCloud ul li.size2 a {
+  color: #69f;
+  font-size: 90%;
+  font-weight: 300;
+}
+
+#gTagCloud ul li.size3 a {
+  color: #69c;
+  font-size: 100%;
+  font-weight: 500;
+}
+
+#gTagCloud ul li.size4 a {
+  color: #369;
+  font-size: 110%;
+  font-weight: 700;
+}
+
+#gTagCloud ul li.size5 a {
+  color: #0e2b52;
+  font-size: 120%;
+  font-weight: 900;
+}
+
+#gTagCloud ul li.size6 a {
+  color: #0e2b52;
+  font-size: 130%;
+  font-weight: 900;
+}
+
+#gTagCloud ul li.size7 a {
+  color: #0e2b52;
+  font-size: 140%;
+  font-weight: 900;
+}
+
+#gTagCloud ul li a:hover {
+  color: #f30;
+}
+
+/* Pagination ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.gPager {
+  clear: both;
+  margin: 0;
+  padding: 5px 0 !important;
+  width: 100%;
+}
+
+.gPagerText {
+  font-weight: bold;
+  float: left;
+  margin-left: 3px;
+}
+
+.gPagerText li {
+  float: left;
+}
+
+.gPagerText a,
+.gPagerText span {
+  padding: 0 0.5em;
+}
+
+.gPagerText span {
+  color: DodgerBlue;
+}
+
+.gPagerArrows {
+  float: right;
+  height: 16px;
+}
+
+/** *******************************************************************
+ * 6) Browser hacks
+ *********************************************************************/
+
+#gSiteMenu:after,
+#gHeader:after,
+.gBreadcrumbs:after,
+#gAlbumGrid:after,
+.gPager:after,
+#gViewMenu:after {
+  clear: both;
+  content: ".";
+  display: block;
+  height: 0;
+  visibility: hidden;
+}
+
+/** *******************************************************************
+ * 7) jQuery and jQuery UI
+ *********************************************************************/
+
+/* Superfish menu overrides ~~~~~~~~~~~~~~ */
+
+.sf-menu li {
+  background-color: #202020;
+  font-weight: bold;
+}
+
+.sf-menu a {
+  border: none;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.sf-menu li:hover, .sf-menu li.sfHover, .sf-menu li.sfHover a,
+.sf-menu a:focus, .sf-menu a:hover, .sf-menu a:active {
+  background-color: #202020;
+}
+
+.sf-sub-indicator {
+  margin-top: -3px;
+}
+
+/* Ajax loading indicator ~~~~~~~~~~~~~~~~ */
+
+.gLoadingLarge {
+  background: #e8e8e8 url('../images/loading-lg.gif') no-repeat center center;
+  font-size: 0;
+}
+
+.gDialogLoadingLarge {
+  background: url('../images/loading-lg.gif') no-repeat center center !important;
+  font-size: 0;
+}
+
+.gLoadingSmall {
+  background: #e8e8e8 url('../images/loading-sm.gif') no-repeat center center;
+  font-size: 0;
+}
+
+.gDraggable {
+  cursor: move;
+}
+
+.gDropTarget {
+  background-color: #cfdeff;
+  border: 1px dotted #999;
+  height: 100px;
+  margin: 1em 0;
+}
+
+/* jQuery UI Dialog ~~~~~~~~~~~~~~~~~~~~~~ */
+
+.ui-widget-overlay {
+  background: #202020;
+  opacity: .7;
+  filter: Alpha(Opacity=70);
+}
+
+#gDialog {
+  text-align: left;
+}
+
+#gDialog li {
+  padding-left: 0;
+}
+
+#gDialog form input[type="text"],
+#gDialog form input[type="password"] {
+  width: 100%;
+}
+
+#gDialog #gLoginForm,
+#gDialog #gAddUserForm,
+#gDialog #gAddGroupForm {
+  margin: 0 auto;
+  width: 270px;
+}
+
+#gDialog fieldset {
+  border: none;
+}
+
+#gDialog legend {
+  display: none;
+}
+
+/* jQuery UI ThemeRoller buttons */
+
+.gButtonLink {
+  display: inline-block;
+  margin: 0 2px 0 6px;
+  outline: 0;
+}
+
+.gButtonSet {
+  padding-left: 1px;
+}
+
+.gButtonSet li {
+  float: left;
+}
+
+.gButtonSet .gButtonLink {
+  margin: 0;
+}
+
+.ui-icon-left .ui-icon {
+  float: left;
+  margin-right: .2em;
+}
+
+.ui-icon-right .ui-icon {
+  float: right;
+  margin-left: .2em;
+}
+
+.ui-icon-rotate-ccw {
+  background-position: -192px -64px;
+}
+
+.ui-icon-rotate-cw {
+  background-position: -208px -64px;
+}
+
+/* STUFF THAT NEEDS A HOME */
+
+#gMove ul {
+  padding-left: 1em;
+}
+
+#gMove .selected {
+  background: #999;
+}
+
+/* Server Add */
+
+#gServerAdd button {
+  float: left;
+  margin-bottom: .5em;
+}
+
+#gServerAddTree {
+  cursor: pointer;
+  padding-left: 4px;
+}
+
+#gServerAddTree li {
+  padding: 0;
+  float: none;
+}
+
+#gServerAddTree span.selected {
+  background: #ddd;
+}
+
+#gServerAddTree {
+  border: 1px solid #ccc;
+  height: 25em;
+  overflow: auto;
+  margin-bottom: .5em;
+  padding-top: .5em;
+  padding-bottom: .5em;
+}
+
+#gServerAdd ul ul li {
+  padding-left: 1.2em;
+}
+
+#gServerAdd .gBreadcrumbs {
+  font-size: 1em;
+  padding: 0;
+  margin: 0;
+  border-top-width: 0;
+}
+
+#gServerAdd p {
+  margin: 0;
+}
+
+#gServerAdd .gBreadcrumbs li {
+  padding: 10px 6px 10px 16px;
+}
+
+/* Permissions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#gPermissions .gDenied,
+#gPermissions .gAllowed {
+  text-align: center;
+  vertical-align: middle;
+}
+#gPermissions .gDenied {
+  background-color: #fcc;
+}
+#gPermissions .gAllowed {
+  background-color: #cfc;
+}
+
+/*************** STUFF THAT NEEDS A HOME ****************/
+
+.gProgressBar {
+  height: 1em;
+  width: 100%;
+  margin-top: .5em;
+  display: inline-block;
+}
+
+#gAddPhotos p {
+  margin: 0;
+  padding: 0;
+}
+
+#gAddPhotosCanvas {
+  height: 325px;
+  width: 450px;
+  overflow: auto;
+}
+
+#gAddPhotosQueue .progressbar {
+  height: 4px;
+}
+
+#gAddPhotosQueue .title {
+  font-size: 1.25em;
+}
+
+#gAddPhotosQueue .status {
+  font-size: .75em;
+}
+
+#gAddPhotosQueue .box {
+  margin-bottom: 8px;
+  padding: 4px;
+}
+
+#gAddPhotosQueue .pending {
+  background-color: #e8e8e8;
+  border: 1px solid #d7d7d7;
+}
+
+#gAddPhotosQueue .error {
+  background-color: #fcc;
+  border: 1px solid #ebb;
+}
+
+#gAddPhotosQueue .uploading {
+  background-color: #ff9;
+  border: 1px solid #ee8;
+}
+
+#gAddPhotosQueue .complete {
+  background-color: #cfc;
+  border: 1px solid #beb;
+}
+
+#gAdminG2ImportNotes {
+  padding-bottom: 20px;
+}
+
+#gAdminG2ImportDetails {
+  padding-top: 20px;
+}
+
+#gAdminG2ImportDetails .gWarning {
+  margin-top: 4px;
+}
+
+#gAdminG2ImportDetails .gInfo {
+  padding: 2px;
+  border: 1px solid #999;
+  margin-bottom: 10px;
+}
+
+#gAdminG2ImportNotes p,
+#gAdminG2ImportDetails .gInfo p {
+  padding: 0;
+  margin: 0;
+}
+
+#gAdminG2ImportNotes ul li,
+#gAdminG2Import .gInfo ul li {
+  padding-left: 0;
+  margin-left: 20px;
+  list-style-type: disc;
+}
+
+/* Right to left styles ~~~~~~~~~~~~~~~~~~~~ */
+
+.rtl {
+  direction: rtl;
+}
+
+.rtl caption,
+.rtl th,
+.rtl #gDialog {
+  text-align: right;
+}
+
+.rtl #gHeader #gQuickSearchForm,
+.rtl #gForgotPasswordLink,
+.rtl #gHeader #gLoginMenu,
+.rtl .ui-icon-right .ui-icon {
+  clear: left;
+  float: left;
+}
+
+.rtl #gDialog .gCancel,
+.rtl form ul ul li,
+.rtl input[type="submit"],
+.rtl input[type="reset"],
+.rtl .gShortForm li,
+.rtl #gHeader #gLogo img,
+.rtl #gContent #gAlbumGrid .gItem,
+.rtl #gSiteMenu,
+.rtl .gBreadcrumbs li,
+.rtl .gPager li,
+.rtl .gButtonSet li,
+.rtl .ui-icon-left .ui-icon {
+  float: right;
+}
+
