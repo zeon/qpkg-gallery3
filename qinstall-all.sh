@@ -35,6 +35,7 @@ CMD_GETCFG="/sbin/getcfg"
 CMD_GREP="/bin/grep"
 CMD_LN="/bin/ln"
 CMD_MKTEMP="/bin/mktemp"
+CMD_MKDIR="/bin/mkdir"
 CMD_PIDOF="/bin/pidof"
 CMD_READLINK="/usr/bin/readlink"
 CMD_RM="/bin/rm"
@@ -138,12 +139,13 @@ pre_update()
 {
 	TMP_DIR=/share/Public/gallery3-backup
 	$CMD_MKDIR -p $TMP_DIR
-	$CMD_CP -af $QPKG_CONFIG_PATH $TMP_DIR
+	$CMD_CP -af $QPKG_DIR/var $TMP_DIR
 }
 
 post_update()
 {
-	$CMD_CP -af "${TMP_DIR}/var/*" ${QPKG_CONFIG_PATH}
+	TMP_DIR=/share/Public/gallery3-backup
+	$CMD_CP -af ${TMP_DIR}/var/{albums,logs,modules,resizes,thumbs,tmp,uploads} $QPKG_DIR/var
 }
 
 install()
@@ -183,7 +185,10 @@ install()
 			$CMD_ECHO "$QPKG_INSTALL_MSG"
 			_exit 1
 		fi			
-			
+
+		# start apache 
+		/etc/init.d/Qthttpd.sh restart
+
 		# set QPKG information to $SYS_QPKG_CONFIG_FILE
 		$CMD_ECHO "Set QPKG information to $SYS_QPKG_CONFIG_FILE"
 		[ -f ${SYS_QPKG_CONFIG_FILE} ] || $CMD_TOUCH ${SYS_QPKG_CONFIG_FILE}

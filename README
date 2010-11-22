@@ -3,8 +3,8 @@ This QPKG contains the source files of applications obtained/downloaded from the
 - Gallery v3.0
 http://downloads.sourceforge.net/project/gallery/gallery3/3.0/gallery-3.0.zip
 
-* Additional themes included in the release (placed under themes/ directory)
 
+* Additional themes included in the release (placed under themes/ directory)
 - Carrot
 http://www.porkkanamafia.fi/jemma/gallery3_carrot_theme.zip
 
@@ -32,4 +32,9 @@ http://gallery.menalto.com/files/steel.zip
 - Three nids
 http://www.gallerymodules.com/gallery3-contrib/3.0/themes/three_nids.zip
 
-
+- To build:
+1) git clone https://github.com/zeon/qpkg-sdk.git
+2) cd qpkg-sdk/apps
+3) git clone https://github.com/zeon/qpkg-gallery3.git gallery3
+4) cd gallery3
+5) ../build.sh all
