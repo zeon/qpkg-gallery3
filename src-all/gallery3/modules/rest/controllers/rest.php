@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
  * Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA  02110-1301, USA.
  */
 class Rest_Controller extends Controller {
+  const ALLOW_PRIVATE_GALLERY = true;
+
   public function index() {
     $username = Input::instance()->post("user");
     $password = Input::instance()->post("password");
@@ -86,6 +88,9 @@ class Rest_Controller extends Controller {
       }
 
       $request->url = url::abs_current(true);
+      if ($suffix = Kohana::config('core.url_suffix')) {
+        $request->url = substr($request->url, 0, strlen($request->url) - strlen($suffix));
+      }
 
       rest::set_active_user($request->access_key);
 

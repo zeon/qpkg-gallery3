@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ class identity_Core {
 
       $session = Session::instance();
       if (!($user = $session->get("user"))) {
-        self::set_active_user($user = self::guest());
+        identity::set_active_user($user = identity::guest());
       }
 
       // The installer cannot set a user into the session, so it just sets an id which we should
@@ -69,6 +69,7 @@ class identity_Core {
       // @todo set the user name into the session instead of 2 and then use it to get the
       //       user object
       if ($user === 2) {
+        $session->delete("user");  // delete it so that identity code isn't confused by the integer
         auth::login(IdentityProvider::instance()->admin_user());
       }
 
@@ -127,7 +128,7 @@ class identity_Core {
     $session = Session::instance();
     $session->set("user", $user);
     $session->delete("group_ids");
-    self::load_user();
+    identity::load_user();
   }
 
   /**

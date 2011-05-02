@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ class movie_Core {
   }
 
   static function extract_frame($input_file, $output_file) {
-    $ffmpeg = self::find_ffmpeg();
+    $ffmpeg = movie::find_ffmpeg();
     if (empty($ffmpeg)) {
       throw new Exception("@todo MISSING_FFMPEG");
     }
@@ -83,27 +83,23 @@ class movie_Core {
     }
   }
 
+  /**
+   * Return the path to the ffmpeg binary if one exists and is executable, or null.
+   */
   static function find_ffmpeg() {
     if (!($ffmpeg_path = module::get_var("gallery", "ffmpeg_path")) || !file_exists($ffmpeg_path)) {
-      gallery::set_path_env(
-        array(module::get_var("gallery", "graphics_toolkit_path"),
-              getenv("PATH"),
-              module::get_var("gallery", "extra_binary_paths")));
-      if (function_exists("exec")) {
-        $ffmpeg_path = exec("which ffmpeg");
-      }
-
+      $ffmpeg_path = system::find_binary(
+        "ffmpeg", module::get_var("gallery", "graphics_toolkit_path"));
       module::set_var("gallery", "ffmpeg_path", $ffmpeg_path);
     }
     return $ffmpeg_path;
   }
 
-
   /**
    * Return the width, height, mime_type and extension of the given movie file.
    */
   static function get_file_metadata($file_path) {
-    $ffmpeg = self::find_ffmpeg();
+    $ffmpeg = movie::find_ffmpeg();
     if (empty($ffmpeg)) {
       throw new Exception("@todo MISSING_FFMPEG");
     }

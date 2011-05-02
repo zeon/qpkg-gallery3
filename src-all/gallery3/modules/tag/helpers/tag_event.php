@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,12 @@ class tag_event_Core {
 
   static function item_deleted($item) {
     tag::clear_all($item);
+    if (!batch::in_progress()) {
+      tag::compact();
+    }
+  }
+
+  static function batch_complete() {
     tag::compact();
   }
 
@@ -88,6 +94,7 @@ class tag_event_Core {
         tag::add($item, trim($tag_name));
       }
     }
+    module::event("item_related_update", $item);
     tag::compact();
   }
 
@@ -109,7 +116,7 @@ class tag_event_Core {
     if (!isset($group->uploadify)) {
       return;
     }
-    
+
     $group = $form->add_photos;
     $group->input("tags")
       ->label(t("Add tags to all uploaded files"))
@@ -132,12 +139,27 @@ class tag_event_Core {
     if (!isset($group->uploadify)) {
       return;
     }
-    
+
     foreach (explode(",", $form->add_photos->tags->value) as $tag_name) {
       $tag_name = trim($tag_name);
       if ($tag_name) {
         $tag = tag::add($album, $tag_name);
       }
+    }
+  }
+
+  static function info_block_get_metadata($block, $item) {
+    $tags = array();
+    foreach (tag::item_tags($item) as $tag) {
+      $tags[] = "<a href=\"" . url::site("tag/{$tag->name}") . "\">{$tag->name}</a>";
+    }
+    if ($tags) {
+      $info = $block->content->metadata;
+      $info["tags"] = array(
+        "label" => t("Tags:"),
+        "value" => implode(", ", $tags)
+      );
+      $block->content->metadata = $info;
     }
   }
 }

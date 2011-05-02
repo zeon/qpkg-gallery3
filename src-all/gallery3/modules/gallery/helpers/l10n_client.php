@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,14 +40,14 @@ class l10n_client_Core {
   }
 
   static function server_uid($api_key=null) {
-    $api_key = $api_key == null ? self::api_key() : $api_key;
+    $api_key = $api_key == null ? l10n_client::api_key() : $api_key;
     $parts = explode(":", $api_key);
     return empty($parts) ? 0 : $parts[0];
   }
 
   private static function _sign($payload, $api_key=null) {
-    $api_key = $api_key == null ? self::api_key() : $api_key;
-    return md5($api_key . $payload . self::client_token());
+    $api_key = $api_key == null ? l10n_client::api_key() : $api_key;
+    return md5($api_key . $payload . l10n_client::client_token());
   }
 
   static function validate_api_key($api_key) {
@@ -55,15 +55,24 @@ class l10n_client_Core {
     $url = self::_server_url("status");
     $signature = self::_sign($version, $api_key);
 
-    list ($response_data, $response_status) = remote::post(
-      $url, array("version" => $version,
-                  "client_token" => self::client_token(),
-                  "signature" => $signature,
-                  "uid" => self::server_uid($api_key)));
-    if (!remote::success($response_status)) {
-      return false;
+    try {
+      list ($response_data, $response_status) = remote::post(
+        $url, array("version" => $version,
+                    "client_token" => l10n_client::client_token(),
+                    "signature" => $signature,
+                    "uid" => l10n_client::server_uid($api_key)));
+    } catch (ErrorException $e) {
+      // Log the error, but then return a "can't make connection" error
+      Kohana_Log::add("error", $e->getMessage() . "\n" . $e->getTraceAsString());
     }
-    return true;
+    if (!isset($response_data) && !isset($response_status)) {
+      return array(false, false);
+    }
+
+    if (!remote::success($response_status)) {
+      return array(true, false);
+    }
+    return array(true, true);
   }
 
   /**
@@ -215,9 +224,9 @@ class l10n_client_Core {
 
     list ($response_data, $response_status) = remote::post(
       $url, array("data" => $request_data,
-                  "client_token" => self::client_token(),
+                  "client_token" => l10n_client::client_token(),
                   "signature" => $signature,
-                  "uid" => self::server_uid()));
+                  "uid" => l10n_client::server_uid()));
 
     if (!remote::success($response_status)) {
       throw new Exception("@todo TRANSLATIONS_SUBMISSION_FAILED " . $response_status);

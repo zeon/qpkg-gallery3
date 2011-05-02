@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -157,6 +157,7 @@ class g2_import_Core {
 
     $ret = GalleryEmbed::init();
     if ($ret) {
+      Kohana_Log::add("error", "Gallery 2 call failed with: " . $ret->getAsText());
       return false;
     }
 
@@ -498,6 +499,9 @@ class g2_import_Core {
   static function set_album_highlight(&$queue) {
     // Dequeue the current album and enqueue its children
     list($g2_album_id, $children) = each($queue);
+    if (empty($children)) {
+      return;
+    }
     unset($queue[$g2_album_id]);
     foreach ($children as $key => $value) {
       $queue[$key] = $value;
@@ -1151,7 +1155,8 @@ class g2_import_Core {
       "SELECT [GalleryComment::id] " .
       "FROM [GalleryComment] " .
       "WHERE [GalleryComment::publishStatus] = 0 " . // 0 == COMMENT_PUBLISH_STATUS_PUBLISHED
-      "AND   [GalleryComment::id] > ?",
+      "AND [GalleryComment::id] > ? " .
+      "ORDER BY [GalleryComment::id] ASC",
       array($min_id),
       array("limit" => array("count" => 100))));
     while ($result = $results->nextResult()) {
@@ -1170,7 +1175,50 @@ class g2_import_Core {
     $ids = array();
     $results = g2($gallery->search(
       "SELECT DISTINCT([TagItemMap::itemId]) FROM [TagItemMap] " .
-      "WHERE [TagItemMap::itemId] > ?",
+      "WHERE [TagItemMap::itemId] > ? " .
+      "ORDER BY [TagItemMap::itemId] ASC",
+      array($min_id),
+      array("limit" => array("count" => 100))));
+    while ($result = $results->nextResult()) {
+      $ids[] = $result[0];
+    }
+    return $ids;
+  }
+
+  /**
+   * Get a set of user ids from Gallery 2 greater than $min_id.  We use this to get the
+   * next chunk of users to import.
+   */
+  static function get_user_ids($min_id) {
+    global $gallery;
+
+    $ids = array();
+    $results = g2($gallery->search(
+      "SELECT [GalleryUser::id] " .
+      "FROM [GalleryUser] " .
+      "WHERE [GalleryUser::id] > ? " .
+      "ORDER BY [GalleryUser::id] ASC",
+      array($min_id),
+      array("limit" => array("count" => 100))));
+    while ($result = $results->nextResult()) {
+      $ids[] = $result[0];
+    }
+    return $ids;
+  }
+
+  /**
+   * Get a set of group ids from Gallery 2 greater than $min_id.  We use this to get the
+   * next chunk of groups to import.
+   */
+  static function get_group_ids($min_id) {
+    global $gallery;
+
+    $ids = array();
+    $results = g2($gallery->search(
+      "SELECT [GalleryGroup::id] " .
+      "FROM [GalleryGroup] " .
+      "WHERE [GalleryGroup::id] > ? " .
+      "ORDER BY [GalleryGroup::id] ASC",
       array($min_id),
       array("limit" => array("count" => 100))));
     while ($result = $results->nextResult()) {
@@ -1199,6 +1247,11 @@ class g2_import_Core {
     $g2_map->g3_id = $g3_id;
     $g2_map->g2_id = $g2_id;
     $g2_map->resource_type = $resource_type;
+
+    if (strpos($g2_url, self::$g2_base_url) === 0) {
+      $g2_url = substr($g2_url, strlen(self::$g2_base_url));
+    }
+
     $g2_map->g2_url = $g2_url;
     $g2_map->save();
     self::$map[$g2_id] = $g3_id;
@@ -1211,13 +1264,12 @@ class g2_import_Core {
 
   static function g2_url($params) {
     global $gallery;
-    $url = $gallery->getUrlGenerator()->generateUrl(
+    return $gallery->getUrlGenerator()->generateUrl(
       $params,
       array("forceSessionId" => false,
             "htmlEntities" => false,
             "urlEncode" => false,
             "useAuthToken" => false));
-    return str_replace(self::$g2_base_url, "", $url);
   }
 
   static function lower_error_reporting() {

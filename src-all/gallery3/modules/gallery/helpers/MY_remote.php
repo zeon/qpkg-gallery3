@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ class remote extends remote_Core {
 
     /* Read the web page into a buffer */
     list ($response_status, $response_headers, $response_body) =
-      self::do_request($url, 'POST', $extra_headers, $post_data_raw);
+      remote::do_request($url, 'POST', $extra_headers, $post_data_raw);
 
     return array($response_body, $response_status, $response_headers);
   }

@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ class module_Core {
    * @param integer $version
    */
   static function set_version($module_name, $version) {
-    $module = self::get($module_name);
+    $module = module::get($module_name);
     if (!$module->loaded()) {
       $module->name = $module_name;
       $module->active = $module_name == "gallery";  // only gallery is active by default
@@ -62,7 +62,7 @@ class module_Core {
    *                      not found
    */
   static function info($module_name) {
-    $module_list = self::available();
+    $module_list = module::available();
     return isset($module_list->$module_name) ? $module_list->$module_name : false;
   }
 
@@ -94,10 +94,10 @@ class module_Core {
         $modules->$module_name =
           new ArrayObject(parse_ini_file($file), ArrayObject::ARRAY_AS_PROPS);
         $m =& $modules->$module_name;
-        $m->installed = self::is_installed($module_name);
-        $m->active = self::is_active($module_name);
+        $m->installed = module::is_installed($module_name);
+        $m->active = module::is_active($module_name);
         $m->code_version = $m->version;
-        $m->version = self::get_version($module_name);
+        $m->version = module::get_version($module_name);
         $m->locked = false;
 
         if ($m->active && $m->version != $m->code_version) {
@@ -107,7 +107,7 @@ class module_Core {
 
       // Lock certain modules
       $modules->gallery->locked = true;
-      $identity_module = self::get_var("gallery", "identity_provider", "user");
+      $identity_module = module::get_var("gallery", "identity_provider", "user");
       $modules->$identity_module->locked = true;
       $modules->ksort();
       self::$available = $modules;
@@ -168,7 +168,7 @@ class module_Core {
     if (method_exists($installer_class, "install")) {
       call_user_func_array(array($installer_class, "install"), array());
     } else {
-      module::set_version($module_name, 1);
+      module::set_version($module_name, module::available()->$module_name->code_version);
     }
 
     // Set the weight of the new module, which controls the order in which the modules are
@@ -258,7 +258,7 @@ class module_Core {
       call_user_func_array(array($installer_class, "activate"), array());
     }
 
-    $module = self::get($module_name);
+    $module = module::get($module_name);
     if ($module->loaded()) {
       $module->active = true;
       $module->save();
@@ -285,7 +285,7 @@ class module_Core {
       call_user_func_array(array($installer_class, "deactivate"), array());
     }
 
-    $module = self::get($module_name);
+    $module = module::get($module_name);
     if ($module->loaded()) {
       $module->active = false;
       $module->save();
@@ -312,7 +312,7 @@ class module_Core {
     }
 
     graphics::remove_rules($module_name);
-    $module = self::get($module_name);
+    $module = module::get($module_name);
     if ($module->loaded()) {
       $module->delete();
     }
@@ -488,7 +488,7 @@ class module_Core {
   static function incr_var($module_name, $name, $increment=1) {
     db::build()
       ->update("vars")
-      ->set("value", new Database_Expression("`value` + $increment"))
+      ->set("value", db::expr("`value` + $increment"))
       ->where("module_name", "=", $module_name)
       ->where("name", "=", $name)
       ->execute();
@@ -503,13 +503,25 @@ class module_Core {
    * @param string $name
    */
   static function clear_var($module_name, $name) {
-    $var = ORM::factory("var")
+    db::build()
+      ->delete("vars")
       ->where("module_name", "=", $module_name)
       ->where("name", "=", $name)
-      ->find();
-    if ($var->loaded()) {
-      $var->delete();
-    }
+      ->execute();
+
+    Cache::instance()->delete("var_cache");
+    self::$var_cache = null;
+  }
+
+ /**
+   * Remove all variables for this module.
+   * @param string $module_name
+   */
+  static function clear_all_vars($module_name) {
+    db::build()
+      ->delete("vars")
+      ->where("module_name", "=", $module_name)
+      ->execute();
 
     Cache::instance()->delete("var_cache");
     self::$var_cache = null;
@@ -520,6 +532,6 @@ class module_Core {
    * @param string $module_name
    */
   static function get_version($module_name) {
-    return self::get($module_name)->version;
+    return module::get($module_name)->version;
   }
 }

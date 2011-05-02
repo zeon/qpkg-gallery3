@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,11 @@ class rest_Core {
         $html = t("Empty response");
       }
       print "<pre>$html</pre>";
+      if (Session::instance()->get("profiler", false)) {
+        Profiler::enable();
+        $profiler = new Profiler();
+        $profiler->render();
+      }
       break;
 
     default:
@@ -104,7 +109,7 @@ class rest_Core {
 
     if (!$key->loaded()) {
       $key->user_id = identity::active_user()->id;
-      $key->access_key = md5(md5(uniqid(mt_rand(), true) . access::private_key()));
+      $key->access_key = md5(random::hash() . access::private_key());
       $key->save();
     }
 
@@ -122,7 +127,12 @@ class rest_Core {
    * @return mixed  the corresponding object (usually a model of some kind)
    */
   static function resolve($url) {
-    $relative_url = substr($url, strlen(url::abs_site("rest")));
+    if ($suffix = Kohana::config('core.url_suffix')) {
+      $relative_url = substr($url, strlen(url::abs_site("rest")) - strlen($suffix));
+    } else {
+      $relative_url = substr($url, strlen(url::abs_site("rest")));
+    }
+
     $path = parse_url($relative_url, PHP_URL_PATH);
     $components = explode("/", $path, 3);
 

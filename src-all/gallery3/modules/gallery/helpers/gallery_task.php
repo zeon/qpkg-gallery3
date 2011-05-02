@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,7 +71,12 @@ class gallery_task_Core {
   static function rebuild_dirty_images($task) {
     $errors = array();
     try {
-      $result = graphics::find_dirty_images_query()->select("id")->execute();
+      // Choose the dirty images in a random order so that if we run this task multiple times
+      // concurrently each task is rebuilding different images simultaneously.
+      $result = graphics::find_dirty_images_query()->select("id")
+        ->select(db::expr("RAND() as r"))
+        ->order_by("r", "ASC")
+        ->execute();
       $total_count = $task->get("total_count", $result->count());
       $mode = $task->get("mode", "init");
       if ($mode == "init") {
@@ -603,7 +608,7 @@ class gallery_task_Core {
   static function find_dupe_slugs() {
     return db::build()
       ->select_distinct(
-        array("parent_slug" => new Database_Expression("CONCAT(`parent_id`, ':', LOWER(`slug`))")))
+        array("parent_slug" => db::expr("CONCAT(`parent_id`, ':', LOWER(`slug`))")))
       ->select("id")
       ->select(array("C" => "COUNT(\"*\")"))
       ->from("items")
@@ -615,7 +620,7 @@ class gallery_task_Core {
   static function find_dupe_names() {
     return db::build()
       ->select_distinct(
-        array("parent_name" => new Database_Expression("CONCAT(`parent_id`, ':', LOWER(`name`))")))
+        array("parent_name" => db::expr("CONCAT(`parent_id`, ':', LOWER(`name`))")))
       ->select("id")
       ->select(array("C" => "COUNT(\"*\")"))
       ->from("items")

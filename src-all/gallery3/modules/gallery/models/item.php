@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 class Item_Model_Core extends ORM_MPTT {
   protected $children = "items";
   protected $sorting = array();
-  protected $data_file = null;
+  public $data_file = null;
 
   public function __construct($id=null) {
     parent::__construct($id);
@@ -28,7 +28,7 @@ class Item_Model_Core extends ORM_MPTT {
     if (!$this->loaded()) {
       // Set reasonable defaults
       $this->created = time();
-      $this->rand_key = ((float)mt_rand()) / (float)mt_getrandmax();
+      $this->rand_key = random::percent();
       $this->thumb_dirty = 1;
       $this->resize_dirty = 1;
       $this->sort_column = "created";
@@ -71,6 +71,11 @@ class Item_Model_Core extends ORM_MPTT {
   }
 
   public function delete($ignored_id=null) {
+    if (!$this->loaded()) {
+      // Concurrent deletes may result in this item already being gone.  Ignore it.
+      return;
+    }
+
     if ($this->id == 1) {
       $v = new Validation(array("id"));
       $v->add_error("id", "cant_delete_root_album");
@@ -166,8 +171,9 @@ class Item_Model_Core extends ORM_MPTT {
    */
   public function file_url($full_uri=false) {
     $relative_path = "var/albums/" . $this->relative_path();
+    $cache_buster = $this->_cache_buster($this->file_path());
     return ($full_uri ? url::abs_file($relative_path) : url::file($relative_path))
-      . "?m={$this->updated}";
+      . $cache_buster;
   }
 
   /**
@@ -198,7 +204,7 @@ class Item_Model_Core extends ORM_MPTT {
    * photo: http://example.com/gallery3/var/albums/album1/photo.thumb.jpg
    */
   public function thumb_url($full_uri=false) {
-    $cache_buster = "?m={$this->updated}";
+    $cache_buster = $this->_cache_buster($this->thumb_path());
     $relative_path = "var/thumbs/" . $this->relative_path();
     $base = ($full_uri ? url::abs_file($relative_path) : url::file($relative_path));
     if ($this->is_photo()) {
@@ -227,9 +233,9 @@ class Item_Model_Core extends ORM_MPTT {
    */
   public function resize_url($full_uri=false) {
     $relative_path = "var/resizes/" . $this->relative_path();
+    $cache_buster = $this->_cache_buster($this->resize_path());
     return ($full_uri ? url::abs_file($relative_path) : url::file($relative_path)) .
-      ($this->is_album() ? "/.album.jpg" : "")
-      . "?m={$this->updated}";
+      ($this->is_album() ? "/.album.jpg" : "") . $cache_buster;
   }
 
   /**
@@ -320,6 +326,7 @@ class Item_Model_Core extends ORM_MPTT {
       $this->updated = time();
       if (!$this->loaded()) {
         // Create a new item.
+        module::event("item_before_create", $this);
 
         // Set a weight if it's missing.  We don't do this in the constructor because it's not a
         // simple assignment.
@@ -383,7 +390,7 @@ class Item_Model_Core extends ORM_MPTT {
           if (file_exists($this->resize_path()) ||
               file_exists($this->thumb_path())) {
             $pi = pathinfo($this->name);
-            $this->name = $pi["filename"] . "-" . rand() . "." . $pi["extension"];
+            $this->name = $pi["filename"] . "-" . random::int() . "." . $pi["extension"];
             parent::save();
           }
 
@@ -398,6 +405,7 @@ class Item_Model_Core extends ORM_MPTT {
         module::event("item_created", $this);
       } else {
         // Update an existing item
+        module::event("item_before_update", $item);
 
         // If any significant fields have changed, load up a copy of the original item and
         // keep it around.
@@ -504,7 +512,7 @@ class Item_Model_Core extends ORM_MPTT {
            ->or_where("slug", "=", $this->slug)
            ->close()
            ->find()->id) {
-      $rand = rand();
+      $rand = random::int();
       if ($base_ext) {
         $this->name = "$base_name-$rand.$base_ext";
       } else {
@@ -538,83 +546,12 @@ class Item_Model_Core extends ORM_MPTT {
   /**
    * Find the position of the given child id in this album.  The resulting value is 1-indexed, so
    * the first child in the album is at position 1.
+   *
+   * This method stands as a backward compatibility for gallery 3.0, and will
+   * be deprecated in version 3.1.
    */
   public function get_position($child, $where=array()) {
-    if (!strcasecmp($this->sort_order, "DESC")) {
-      $comp = ">";
-    } else {
-      $comp = "<";
-    }
-    $db = db::build();
-
-    // If the comparison column has NULLs in it, we can't use comparators on it and will have to
-    // deal with it the hard way.
-    $count = $db->from("items")
-      ->where("parent_id", "=", $this->id)
-      ->where($this->sort_column, "IS", null)
-      ->merge_where($where)
-      ->count_records();
-
-    if (empty($count)) {
-      // There are no NULLs in the sort column, so we can just use it directly.
-      $sort_column = $this->sort_column;
-
-      $position = $db->from("items")
-        ->where("parent_id", "=", $this->id)
-        ->where($sort_column, $comp, $child->$sort_column)
-        ->merge_where($where)
-        ->count_records();
-
-      // We stopped short of our target value in the sort (notice that we're using a < comparator
-      // above) because it's possible that we have duplicate values in the sort column.  An
-      // equality check would just arbitrarily pick one of those multiple possible equivalent
-      // columns, which would mean that if you choose a sort order that has duplicates, it'd pick
-      // any one of them as the child's "position".
-      //
-      // Fix this by doing a 2nd query where we iterate over the equivalent columns and add them to
-      // our base value.
-      foreach ($db
-               ->select("id")
-               ->from("items")
-               ->where("parent_id", "=", $this->id)
-               ->where($sort_column, "=", $child->$sort_column)
-               ->merge_where($where)
-               ->order_by(array("id" => "ASC"))
-               ->execute() as $row) {
-        $position++;
-        if ($row->id == $child->id) {
-          break;
-        }
-      }
-    } else {
-      // There are NULLs in the sort column, so we can't use MySQL comparators.  Fall back to
-      // iterating over every child row to get to the current one.  This can be wildly inefficient
-      // for really large albums, but it should be a rare case that the user is sorting an album
-      // with null values in the sort column.
-      //
-      // Reproduce the children() functionality here using Database directly to avoid loading the
-      // whole ORM for each row.
-      $order_by = array($this->sort_column => $this->sort_order);
-      // Use id as a tie breaker
-      if ($this->sort_column != "id") {
-        $order_by["id"] = "ASC";
-      }
-
-      $position = 0;
-      foreach ($db->select("id")
-               ->from("items")
-               ->where("parent_id", "=", $this->id)
-               ->merge_where($where)
-               ->order_by($order_by)
-               ->execute() as $row) {
-        $position++;
-        if ($row->id == $child->id) {
-          break;
-        }
-      }
-    }
-
-    return $position;
+    return item::get_position($child, $where);
   }
 
   /**
@@ -628,7 +565,7 @@ class Item_Model_Core extends ORM_MPTT {
     list ($height, $width) = $this->scale_dimensions($max);
     if ($center_vertically && $max) {
       // The constant is divide by 2 to calculate the file and 10 to convert to em
-      $margin_top = ($max - $height) / 20;
+      $margin_top = (int)(($max - $height) / 20);
       $extra_attrs["style"] = "margin-top: {$margin_top}em";
       $extra_attrs["title"] = $this->title;
     }
@@ -645,7 +582,7 @@ class Item_Model_Core extends ORM_MPTT {
 
   /**
    * Calculate the largest width/height that fits inside the given maximum, while preserving the
-   * aspect ratio.
+   * aspect ratio.  Don't upscale.
    * @param int $max Maximum size of the largest dimension
    * @return array
    */
@@ -653,13 +590,17 @@ class Item_Model_Core extends ORM_MPTT {
     $width = $this->thumb_width;
     $height = $this->thumb_height;
 
+    if ($width <= $max && $height <= $max) {
+        return array($height, $width);
+    }
+
     if ($height) {
       if (isset($max)) {
         if ($width > $height) {
-          $height = (int)($max * ($height / $width));
+          $height = (int)($max * $height / $width);
           $width = $max;
         } else {
-          $width = (int)($max * ($width / $height));
+          $width = (int)($max * $width / $height);
           $height = $max;
         }
       }
@@ -700,10 +641,10 @@ class Item_Model_Core extends ORM_MPTT {
     $height = $this->height;
     if ($width > $max_size || $height > $max_size) {
       if ($width > $height) {
-        $height *= $max_size / $width;
+        $height = (int)($height * $max_size / $width);
         $width = $max_size;
       } else {
-        $width *= $max_size / $height;
+        $width = (int)($width * $max_size / $height);
         $height = $max_size;
       }
     }
@@ -840,9 +781,16 @@ class Item_Model_Core extends ORM_MPTT {
         }
       } else {
         // New items must have an extension
-        if (!pathinfo($this->name, PATHINFO_EXTENSION)) {
+        $ext = pathinfo($this->name, PATHINFO_EXTENSION);
+        if (!$ext) {
           $v->add_error("name", "illegal_data_file_extension");
           return;
+        }
+
+        if ($this->is_movie() && !preg_match("/^(flv|mp4|m4v)$/i", $ext)) {
+          $v->add_error("name", "illegal_data_file_extension");
+        } else if ($this->is_photo() && !preg_match("/^(gif|jpg|jpeg|png)$/i", $ext)) {
+          $v->add_error("name", "illegal_data_file_extension");
         }
       }
     }
@@ -972,48 +920,88 @@ class Item_Model_Core extends ORM_MPTT {
 
   /**
    * Same as ORM::as_array() but convert id fields into their RESTful form.
+   *
+   * @param array if specified, only return the named fields
    */
-  public function as_restful_array() {
-    // Convert item ids to rest URLs for consistency
-    $data = $this->as_array();
-    if ($tmp = $this->parent()) {
-      $data["parent"] = rest::url("item", $tmp);
+  public function as_restful_array($fields=array()) {
+    if ($fields) {
+      $data = array();
+      foreach ($fields as $field) {
+        if (isset($this->object[$field])) {
+          $data[$field] = $this->__get($field);
+        }
+      }
+      $fields = array_flip($fields);
+    } else {
+      $data = $this->as_array();
     }
-    unset($data["parent_id"]);
-    if ($tmp = $this->album_cover()) {
-      $data["album_cover"] = rest::url("item", $tmp);
-    }
-    unset($data["album_cover_item_id"]);
 
-    $data["web_url"] = $this->abs_url();
+    // Convert item ids to rest URLs for consistency
+    if (empty($fields) || isset($fields["parent"])) {
+      if ($tmp = $this->parent()) {
+        $data["parent"] = rest::url("item", $tmp);
+      }
+      unset($data["parent_id"]);
+    }
+
+    if (empty($fields) || isset($fields["album_cover"])) {
+      if ($tmp = $this->album_cover()) {
+        $data["album_cover"] = rest::url("item", $tmp);
+      }
+      unset($data["album_cover_item_id"]);
+    }
+
+    if (empty($fields) || isset($fields["web_url"])) {
+      $data["web_url"] = $this->abs_url();
+    }
 
     if (!$this->is_album()) {
       if (access::can("view_full", $this)) {
-        $data["file_url"] = rest::url("data", $this, "full");
-        $data["file_size"] = filesize($this->file_path());
-      }
-      if (access::user_can(identity::guest(), "view_full", $this)) {
-        $data["file_url_public"] = $this->file_url(true);
+        if (empty($fields) || isset($fields["file_url"])) {
+          $data["file_url"] = rest::url("data", $this, "full");
+        }
+        if (empty($fields) || isset($fields["file_size"])) {
+          $data["file_size"] = filesize($this->file_path());
+        }
+        if (access::user_can(identity::guest(), "view_full", $this)) {
+          if (empty($fields) || isset($fields["file_url_public"])) {
+            $data["file_url_public"] = $this->file_url(true);
+          }
+        }
       }
     }
 
     if ($this->is_photo()) {
-      $data["resize_url"] = rest::url("data", $this, "resize");
-      $data["resize_size"] = filesize($this->resize_path());
+      if (empty($fields) || isset($fields["resize_url"])) {
+        $data["resize_url"] = rest::url("data", $this, "resize");
+      }
+      if (empty($fields) || isset($fields["resize_size"])) {
+        $data["resize_size"] = filesize($this->resize_path());
+      }
       if (access::user_can(identity::guest(), "view", $this)) {
-        $data["resize_url_public"] = $this->resize_url(true);
+        if (empty($fields) || isset($fields["resize_url_public"])) {
+          $data["resize_url_public"] = $this->resize_url(true);
+        }
       }
     }
 
     if ($this->has_thumb()) {
-      $data["thumb_url"] = rest::url("data", $this, "thumb");
-      $data["thumb_size"] = filesize($this->thumb_path());
+      if (empty($fields) || isset($fields["thumb_url"])) {
+        $data["thumb_url"] = rest::url("data", $this, "thumb");
+      }
+      if (empty($fields) || isset($fields["thumb_size"])) {
+        $data["thumb_size"] = filesize($this->thumb_path());
+      }
       if (access::user_can(identity::guest(), "view", $this)) {
-        $data["thumb_url_public"] = $this->thumb_url(true);
+        if (empty($fields) || isset($fields["thumb_url_public"])) {
+          $data["thumb_url_public"] = $this->thumb_url(true);
+        }
       }
     }
 
-    $data["can_edit"] = access::can("edit", $this);
+    if (empty($fields) || isset($fields["can_edit"])) {
+      $data["can_edit"] = access::can("edit", $this);
+    }
 
     // Elide some internal-only data that is going to cause confusion in the client.
     foreach (array("relative_path_cache", "relative_url_cache", "left_ptr", "right_ptr",
@@ -1021,5 +1009,19 @@ class Item_Model_Core extends ORM_MPTT {
       unset($data[$key]);
     }
     return $data;
+  }
+
+  /**
+   * Increments the view counter of this item
+   * We can't use math in ORM or the query builder, so do this by hand.  It's important
+   * that we do this with math, otherwise concurrent accesses will damage accuracy.
+   */
+  public function increment_view_count() {
+    db::query("UPDATE {items} SET `view_count` = `view_count` + 1 WHERE `id` = $this->id")
+      ->execute();
+  }
+
+  private function _cache_buster($path) {
+    return "?m=" . (string)(file_exists($path) ? filemtime($path) : 0);
   }
 }

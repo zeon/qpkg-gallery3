@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ class site_status_Core {
     $buf = array();
     foreach (ORM::factory("message")->find_all() as $msg) {
       $value = str_replace("__CSRF__", access::csrf_token(), $msg->value);
-      $buf[] = "<li class=\"" . self::severity_class($msg->severity) . "\">$value</li>";
+      $buf[] = "<li class=\"" . site_status::severity_class($msg->severity) . "\">$value</li>";
     }
 
     if ($buf) {
@@ -116,16 +116,16 @@ class site_status_Core {
    */
   static function severity_class($severity) {
     switch($severity) {
-    case self::SUCCESS:
+    case site_status::SUCCESS:
       return "g-success";
 
-    case self::INFO:
+    case site_status::INFO:
       return "g-info";
 
-    case self::WARNING:
+    case site_status::WARNING:
       return "g-warning";
 
-    case self::ERROR:
+    case site_status::ERROR:
       return "g-error";
     }
   }

@@ -1,7 +1,7 @@
 <?php defined("SYSPATH") or die("No direct script access.");
 /**
  * Gallery - a web based photo album viewer and editor
- * Copyright (C) 2000-2010 Bharat Mediratta
+ * Copyright (C) 2000-2011 Bharat Mediratta
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,11 +62,15 @@ class locales_Core {
   }
 
   // @todo Might want to add a localizable language name as well.
+  // ref: http://cldr.unicode.org/
+  // ref: http://cldr.unicode.org/index/cldr-spec/picking-the-right-language-code
+  // ref: http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/likely_subtags.html
   private static function _init_language_data() {
     $l["af_ZA"] = "Afrikaans";                // Afrikaans
     $l["ar_SA"] = "العربية";                   // Arabic
     $l["be_BY"] = "Беларускі";           // Belarusian
     $l["bg_BG"] = "български";           // Bulgarian
+    $l["bn_BD"] = "বাংলা";               // Bengali
     $l["ca_ES"] = "Catalan";                  // Catalan
     $l["cs_CZ"] = "čeština";                  // Czech
     $l["da_DK"] = "Dansk";                    // Danish
@@ -85,6 +89,7 @@ class locales_Core {
     $l["fr_FR"] = "Français";                 // French
     $l["ga_IE"] = "Gaeilge";                  // Irish
     $l["he_IL"] = "עברית";                    // Hebrew
+    $l["hr_HR"] = "hr̀vātskī";                 // Croatian
     $l["hu_HU"] = "Magyar";                   // Hungarian
     $l["is_IS"] = "Icelandic";                // Icelandic
     $l["it_IT"] = "Italiano";                 // Italian
@@ -92,6 +97,7 @@ class locales_Core {
     $l["ko_KR"] = "한국어";                    // Korean
     $l["lt_LT"] = "Lietuvių";                 // Lithuanian
     $l["lv_LV"] = "Latviešu";                 // Latvian
+    $l["ms_MY"] = "Bahasa Melayu";            // Malay
     $l["mk_MK"] = "Македонски јазик";         // Macedonian
     $l["nl_NL"] = "Nederlands";               // Dutch
     $l["no_NO"] = "Norsk bokmål";             // Norwegian
@@ -208,7 +214,7 @@ class locales_Core {
   }
 
   private static function _locale_match_score($requested_locale, $qvalue, $adjustment_factor) {
-    $installed = self::installed();
+    $installed = locales::installed();
     if (isset($installed[$requested_locale])) {
       return array($requested_locale, $qvalue);
     }
@@ -223,14 +229,14 @@ class locales_Core {
 
   static function set_request_locale() {
     // 1. Check the session specific preference (cookie)
-    $locale = self::cookie_locale();
+    $locale = locales::cookie_locale();
     // 2. Check the user's preference
     if (!$locale) {
       $locale = identity::active_user()->locale;
     }
     // 3. Check the browser's / OS' preference
     if (!$locale) {
-      $locale = self::locale_from_http_request();
+      $locale = locales::locale_from_http_request();
     }
     // If we have any preference, override the site's default locale
     if ($locale) {
